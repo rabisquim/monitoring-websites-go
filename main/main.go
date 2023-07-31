@@ -11,31 +11,31 @@ import (
 	"time"
 )
 
-const monitoramentos = 3
+const monitoring = 3
 const delay = 5
 
 func main() {
 
     
-	exibeIntroducao()
+	showIntro()
 
 	for {
 
-		exibeMenu()
+		displayMenu()
 
-		comando := leComando()
+		command := readCommand()
 
-		switch comando {
+		switch command {
 		case 1:
-			iniciarMonitoramento()
+			startMonitoring()
 		case 2:
-			fmt.Println("Exibindo Logs...")
-			imprimeLogs()
+			fmt.Println("Viewing Logs...")
+			printLogs()
 		case 0:
-			fmt.Println("Saindo do programa...")
+			fmt.Println("Leaving the Program...")
 			os.Exit(0)
 		default:
-			fmt.Println("Não conheço esse comando!")
+			fmt.Println("I don't know this command!")
 			os.Exit(-1)
 
 		}
@@ -44,46 +44,42 @@ func main() {
 }
 
 
-func exibeIntroducao() {
+func showIntro() {
 
-	nome := "Robson"
-	versao := 1.1
-
-	fmt.Println("Olá, sr.", nome)
-	fmt.Println("Este programa está na versão", versao)
+	version := 1.1
+	fmt.Println("This program is in version", version)
 }
 
-func leComando() int {
+func readCommand() int {
 
-	var comandoLido int
-	// fmt.Scanf("%d", &comando)
-	fmt.Scan(&comandoLido)
-	fmt.Println("O comando escolhido foi", comandoLido)
+	var commandRead int
+	fmt.Scan(&commandRead)
+	fmt.Println("The chosen command was", commandRead)
 	fmt.Println("")
 
-	return comandoLido
+	return commandRead
 
 }
 
-func exibeMenu() {
+func displayMenu() {
 
-	fmt.Println("1 - Iniciar Monitoramento")
-	fmt.Println("2 - Exibir Logs")
-	fmt.Println("0 - Sair do Programa")
+	fmt.Println("1 - Start Monitoring")
+	fmt.Println("2 - View Logs")
+	fmt.Println("0 - Leave")
 
 }
 
-func iniciarMonitoramento() {
+func startMonitoring() {
 	
-  fmt.Println("Monitorando...")
-	sites := leSitesDoArquivo()
+  fmt.Println("Monitoring...")
+	sites := readSitesFromFiles()
 
-	for i := 0; i < monitoramentos; i++ {
+	for i := 0; i < monitoring; i++ {
 
 		for i, site := range sites {
-			fmt.Println("Testando site", i,
+			fmt.Println("Testing website", i,
 				":", site)
-			testaSite(site)
+			testSite(site)
 
 		}
 		time.Sleep(delay * time.Second)
@@ -94,68 +90,68 @@ func iniciarMonitoramento() {
 
 }
 
-func testaSite(site string) {
+func testSite(site string) {
 
 	resp, err := http.Get(site)
 
     if err !=nil {
 
-        fmt.Println("Ocorreu um erro:", err)
+        fmt.Println("An error has occurred:", err)
     }
 
 	if resp.StatusCode == 200 {
-		fmt.Println("Site:", site, " foi carregado com sucesso!")
-		registraLog(site,true)
+		fmt.Println("Site:", site, " has been uploaded successfully!")
+		registerLog(site,true)
 	} else {
-		fmt.Println("Site:", site, "está com problemas. Status Code:", resp.StatusCode)
-		registraLog(site,false)
+		fmt.Println("Site:", site, "it has problems. Status Code:", resp.StatusCode)
+		registerLog(site,false)
 	}
 }
 
-func leSitesDoArquivo() []string {
+func readSitesFromFiles() []string {
 	
   var sites []string
-	arquivo, err := os.Open("sites.txt")
+	file, err := os.Open("sites.txt")
     
     if err != nil {
-        fmt.Println("Ocorreu um erro:", err)
+        fmt.Println("An error has occurred:", err)
     }
 	
-	defer arquivo.Close() // Usamos defer para garantir que o arquivo seja fechado ao final da função.
-    leitor := bufio.NewScanner(arquivo)
+	defer file.Close()
+    reader := bufio.NewScanner(file)
     
-    for leitor.Scan(){ // Continuamos lendo enquanto houver linhas no arquivo.
+    for reader.Scan(){ 
         
-        linha := strings.TrimSpace(leitor.Text())
-        sites = append(sites, linha)
+        line := strings.TrimSpace(reader.Text())
+        sites = append(sites, line)
 
-        if err := leitor.Err(); err != nil {
-			fmt.Println("Ocorreu um erro durante a leitura:", err)
+        if err := reader.Err(); err != nil {
+			fmt.Println("An error occurred while reading:", err)
         }
     }
 
-    arquivo.Close()
+    file.Close()
     
 	return sites
 }
 
-func registraLog (site string, status bool) {
-	arquivo, err := os.OpenFile("log.txt",os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+func registerLog (site string, status bool) {
+	file, err := os.OpenFile("log.txt",os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 
 	if err !=nil {
-		fmt.Println ("Ocorreu um erro:", err)
+		fmt.Println ("An error has occurred:", err)
 	}
 
-	arquivo.WriteString(time.Now().Format("02/01/2006 15:04:05") + " - " + site + " - online: " + strconv.FormatBool(status) + "\n")
-	arquivo.Close()
+	file.WriteString(time.Now().Format("02/01/2006 15:04:05") + " - " + site + " - online: " + strconv.FormatBool(status) + "\n")
+	file.Close()
 }
 
-func imprimeLogs(){
-	arquivo, err := ioutil.ReadFile("log.txt")
+func printLogs(){
+	file, err := ioutil.ReadFile("log.txt")
 
 	if err != nil {
-		fmt.Println("Ocorreu um erro:", err)
+		fmt.Println("An error has occurred:", err)
 	}
 
-	fmt.Println(string(arquivo))
+	fmt.Println(string(file))
 }
